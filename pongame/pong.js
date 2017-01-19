@@ -54,8 +54,8 @@ class Player extends Rect
     constructor()
     {
         super(100, 10);
-//        this.vel = new Vec;
         this.score = 0;
+        this.name = "";
     }    
 }
 
@@ -74,21 +74,23 @@ class Pong
         ];
 
         this.players[0].pos.y = 10;
+        this.players[0].name = "Computer".toUpperCase();
         this.players[1].pos.y = this._canvas.height - 10;
+        this.players[1].name = prompt('Please enter your name').toUpperCase();
         this.players.forEach(player => {
             player.pos.x = this._canvas.width / 2;
         }); 
 
 
-        let lastTime;
-        const callback = (millis) => {
-            if (lastTime) {
-                this.update((millis - lastTime) / 1000);
+        let lastTime = null;
+        this._frameCallback = (millis) => {
+            if (lastTime !== null) {
+                const diff = millis - lastTime;
+                this.update(diff / 1000);
             }
             lastTime = millis;
-            requestAnimationFrame(callback);
-        }
-        callback(); 
+            requestAnimationFrame(this._frameCallback);
+        };
 
         this.CHAR_PIXEL = 5;
         this.CHARS = [
@@ -117,19 +119,28 @@ class Pong
         });
         this.startSound = new Audio("start.wav");
         this.winSound = new Audio("winner.mp3");
+        this.hit = new Audio("pop.mp3");
 
-        this.reset();
+        this.pause();
+    }
+    clear(){
+        this._context.fillStyle = '#333';
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
     }
 
     collide(player, ball) {
         if (player.left < ball.right && player.right > ball.left && 
              player.top < ball.bottom && player.bottom > ball.top){
-            ball.vel.y = -ball.vel.y;
-            ball.vel.len *= 1.05;  
+            this.hit.play();
+            const len = ball.vel.len;
+            ball.vel.y = -ball.vel.y ;
+            ball.vel.x = 300 * (Math.random() - .5);
+            ball.vel.len = len * 1.05;  
         }
     }
 
     draw (){
+        this.clear();
         this._context.fillStyle = "#333";
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);     
 
@@ -164,30 +175,56 @@ class Pong
         this.players.forEach(player => {
             this._context.font = "16px Arial";
             this._context.fillStyle = "#0095DD";
-            this._context.fillText("Player 1", 10, 20);
-            this._context.fillText("Player 2", 10, this._canvas.height - 20);
+            this._context.fillText(this.players[0].name, 10, 30);
+            this._context.fillText(this.players[1].name, 10, this._canvas.height - 20);
         });
     }    
     
-    reset(){
+    pause(){
         this.ball.pos.x = this._canvas.width / 2;
         this.ball.pos.y = this._canvas.height / 2;
         this.ball.vel.x = 0;
         this.ball.vel.y = 0;
     }
+    reset(){
+        this.ball.pos.x = this._canvas.width / 2;
+        this.ball.pos.y = this._canvas.height / 2;
+        this.ball.vel.x = 0;
+        this.ball.vel.y = 0;
+        this.players[0].score = 0;
+        this.players[1].score = 0;
+    }
 
-    start(){
+    play(){
         if (this.ball.vel.x === 0 && this.ball.vel.x === 0)
             this.ball.vel.x = 300 * (Math.random() > .5 ? 1 : -1);
             this.ball.vel.y = 300 * (Math.random() * 2 - 1);
             this.ball.vel.len = 300;
     }
+    
+    start(){
+        requestAnimationFrame(this._frameCallback);
+    }
+    
+    /*    drawWinner(name){
+        this.winSound.play();
+        this._context.fillStyle = "#eee";
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+        this.winSound.play();
+        this._context.font = "50px serif"
+        this._context.fillText(this.players.name + " " +" wins!", 350, 150);
+
+        this._context.font = "25px serif"
+        this._context.fillText("Click anywhere to restart", 300, 350);
+        return; 
+    }  */
+    
     update(dt){
         if (this.players[0].score === 5 || this.players[1].score === 5){
             this.winSound.play();
             this.player
             this.players.score = 0;
-            this.reset ();
+            this.pause ();
         }
 
         this.ball.pos.x += this.ball.vel.x * dt;
@@ -200,8 +237,16 @@ class Pong
             const playerId = this.ball.vel.y < 0 | 0;
             this.players[playerId].score++;
             console.log(playerId);
-            this.reset();
+            this.pause();
         }
+        
+        /*const compPos = this.players[0].pos.x + (this.players[0].size.x / 2);
+        if (compPos < this.ball.pos.x - 30){
+            this.players[0].pos.x = this.players[0].pos.x + 2;
+        } 
+        else if (compPos > this.ball.pos.x + 30){
+            this.players[0].pos.x = this.players[0].pos.x - 2;
+        } */
 
         this.players[0].pos.x = this.ball.pos.x;
 
@@ -216,9 +261,39 @@ const canvas = document.getElementById("myCanvas");
 const pong = new Pong(canvas);  
 
 canvas.addEventListener("mousemove", event =>{
-    pong.players[1].pos.x = event.offsetX;
+    const scale = event.offsetX / event.target.getBoundingClientRect().width;
+    pong.players[1].pos.x = canvas.width * scale;
 });
 
 canvas.addEventListener("click", event =>{
-    pong.start();
-}); 
+    pong.play();
+});
+
+document.addEventListener('keydown', event =>{
+    console.log(event)
+    if ((event.code === "KeyD" || event.code === "ArrowRight") && pong.players[1].right < canvas.width){
+        pong.players[1].pos.x += 80;
+    } 
+    if ((event.code === "KeyA" || event.code === "ArrowLeft") && pong.players[1].left > 0){
+        pong.players[1].pos.x -= 80;
+    }    
+});    
+
+
+document.addEventListener('keydown', event =>{
+    console.log(event)
+    if (event.code === "Space"){
+       pong.pause(); 
+    }    
+});  
+document.addEventListener('keydown', event =>{
+    console.log(event)
+    if (event.code === "Escape"){
+       pong.reset(); 
+    }    
+});  
+document.addEventListener('keyup', event =>{
+    delete event.code;
+});
+
+pong.start();
