@@ -55,8 +55,10 @@ class Player extends Rect
     {
         super(100, 10);
         this.score = 0;
+        this.vel = new Vec;
         this.name = "";
-    }    
+
+    }
 }
 
 class Pong
@@ -74,9 +76,11 @@ class Pong
         ];
 
         this.players[0].pos.y = 10;
-        this.players[0].name = "Computer".toUpperCase();
+        this.players[0].vel.x = 50;
+        this.players[0].name = prompt('Player1: Please enter your name').toUpperCase();
         this.players[1].pos.y = this._canvas.height - 10;
-        this.players[1].name = prompt('Please enter your name').toUpperCase();
+        this.players[1].vel.x = 50;
+        this.players[1].name = prompt('Player2: Please enter your name').toUpperCase();
         this.players.forEach(player => {
             player.pos.x = this._canvas.width / 2;
         }); 
@@ -121,7 +125,7 @@ class Pong
         this.winSound = new Audio("winner.mp3");
         this.hit = new Audio("pop.mp3");
 
-        this.pause();
+        this.paused();
     }
     clear(){
         this._context.fillStyle = '#333';
@@ -180,7 +184,8 @@ class Pong
         });
     }    
     
-    pause(){
+    paused(){
+        this.startSound.pause();
         this.ball.pos.x = this._canvas.width / 2;
         this.ball.pos.y = this._canvas.height / 2;
         this.ball.vel.x = 0;
@@ -206,30 +211,23 @@ class Pong
         requestAnimationFrame(this._frameCallback);
     }
     
-    /*    drawWinner(name){
-        this.winSound.play();
-        this._context.fillStyle = "#eee";
-        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
-        this.winSound.play();
-        this._context.font = "50px serif"
-        this._context.fillText(this.players.name + " " +" wins!", 350, 150);
 
-        this._context.font = "25px serif"
-        this._context.fillText("Click anywhere to restart", 300, 350);
-        return; 
-    }  */
     
     update(dt){
-        if (this.players[0].score === 5 || this.players[1].score === 5){
+        //checks if the scores of either player is 10
+        if (this.players[0].score === 4 || this.players[1].score === 4){
+            this.startSound.pause();
+        }
+        if (this.players[0].score === 10 || this.players[1].score === 10){    
             this.winSound.play();
-            this.player
-            this.players.score = 0;
-            this.pause ();
+            this.reset ();
         }
 
+        //updates the position of the ball    
         this.ball.pos.x += this.ball.vel.x * dt;
         this.ball.pos.y += this.ball.vel.y * dt
 
+        //checks the collision and if ball is missed, updates the score    
         if (this.ball.left < 0 || this.ball.right > this._canvas.width){
             this.ball.vel.x = -this.ball.vel.x
         }
@@ -237,18 +235,8 @@ class Pong
             const playerId = this.ball.vel.y < 0 | 0;
             this.players[playerId].score++;
             console.log(playerId);
-            this.pause();
+            this.paused();
         }
-        
-        /*const compPos = this.players[0].pos.x + (this.players[0].size.x / 2);
-        if (compPos < this.ball.pos.x - 30){
-            this.players[0].pos.x = this.players[0].pos.x + 2;
-        } 
-        else if (compPos > this.ball.pos.x + 30){
-            this.players[0].pos.x = this.players[0].pos.x - 2;
-        } */
-
-        this.players[0].pos.x = this.ball.pos.x;
 
         this.players.forEach(player => this.collide(player, this.ball));
 
@@ -270,24 +258,22 @@ canvas.addEventListener("click", event =>{
 });
 
 document.addEventListener('keydown', event =>{
-    console.log(event)
-    if ((event.code === "KeyD" || event.code === "ArrowRight") && pong.players[1].right < canvas.width){
-        pong.players[1].pos.x += 80;
+    if (event.code === "KeyD" && pong.players[0].right < canvas.width){
+        pong.players[0].pos.x += pong.players[0].vel.x ;
     } 
-    if ((event.code === "KeyA" || event.code === "ArrowLeft") && pong.players[1].left > 0){
-        pong.players[1].pos.x -= 80;
-    }    
-});    
-
-
-document.addEventListener('keydown', event =>{
-    console.log(event)
+    if (event.code === "KeyA" && pong.players[0].left > 0){
+        pong.players[0].pos.x -= pong.players[0].vel.x;
+    }        
+    if (event.code === "ArrowRight" && pong.players[1].right < canvas.width){
+        pong.players[1].pos.x += pong.players[1].vel.x;
+    } 
+    if (event.code === "ArrowLeft" && pong.players[1].left > 0){
+        pong.players[1].pos.x -= pong.players[1].vel.x;
+    } 
     if (event.code === "Space"){
-       pong.pause(); 
+       pong.paused(); 
     }    
-});  
-document.addEventListener('keydown', event =>{
-    console.log(event)
+
     if (event.code === "Escape"){
        pong.reset(); 
     }    
