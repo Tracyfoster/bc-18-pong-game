@@ -37,7 +37,8 @@ update(dt){
         else if (compPos > this.ball.pos.x + 30){
             this.players[0].pos.x = this.players[0].pos.x - 2;
         } 
-     ```   
+```   
+
 ###Motivation
 This project is in fulfillment of the Andela Bootcamp requirement
 
