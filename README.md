@@ -1,3 +1,5 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Tracyfoster/bc-18-pong-game/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Tracyfoster/bc-18-pong-game/?branch=master)
+
 # Pong Game Project
 
 Pong is one of the earliest arcade video games and the very first sports arcade video game. It is a table tennis sports game featuring simple two-dimensional graphics. There are usually two playing paddles and the users are required to move the paddles to hit the ball.
