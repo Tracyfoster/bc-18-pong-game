@@ -44,7 +44,7 @@ This project is in fulfillment of the Andela Bootcamp requirement
 
 ###Dependencies
 This game was built using
-* HTNL5 Canvas
+* HTML5 Canvas
 * Vanilla JS (ECMA Script 6)
 
 ###License
