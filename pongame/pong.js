@@ -143,8 +143,31 @@ class Pong
         }
     }
 
+    instrust (){
+        this._context.fillStyle = "#333";
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+        this._context.font = "40px serif"
+        this._context.fillStyle = "#fff";
+        this._context.fillText("Welcome to Pong!", 150, 60);
+
+        this._context.font = "25px serif"
+        this._context.fillStyle = "#fff";
+        this._context.fillText("Here are some instructions to play the game.", 70, 130);
+
+        this._context.font = "20px serif"
+        this._context.fillStyle = "#fff";
+        this._context.fillText("Player 1: Use \"A\" to move left and \"D\" to move right.", 100, 170);
+        this._context.fillText("Player 2: Use the arrow keys to move left and right.", 100, 200);
+        this._context.fillText("To pause the game, use \"Spacebar\".", 100, 230);
+        this._context.fillText("To reset the game, use \"Escape\".", 100, 260);
+        this._context.fillText("To start the game, click the mouse. ", 100, 290);
+        this._context.fillText("To resume the game, use the \"Enter\" key.", 100, 320);
+        this._context.fillText("To go back to the instructions, use the \"Tab\" key.", 100, 350);
+    }
+
     draw (){
-        this.clear();
+        //this.clear();
         this._context.fillStyle = "#333";
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);     
 
@@ -156,7 +179,20 @@ class Pong
 
         this.drawUser()
 
-        this.startSound.play();
+        if (this.players[0].score > 4 || this.players[1].score > 4){
+            this.startSound.pause();
+        } else{
+            this.startSound.play();
+        }   
+
+        this.players.forEach(player => {
+            if (this.players[0].score === 9) {
+                this.drawWinner(this.players[0].name);
+            }
+            if (this.players[1].score === 9) {
+                this.drawWinner(this.players[1].name);
+            }
+         }); 
     }
 
     drawRect(rect){
@@ -183,6 +219,20 @@ class Pong
             this._context.fillText(this.players[1].name, 10, this._canvas.height - 20);
         });
     }    
+
+    drawWinner(name){
+        this.winSound.play();
+        this._context.fillStyle = "#333";
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+        this._context.font = "50px serif"
+        this._context.fillStyle = "#fff";
+        this._context.fillText(name + " " +" wins!", 150, 150);
+
+        this._context.font = "25px serif"
+        this._context.fillStyle = "#fff";
+        this._context.fillText("Press the \"Escape\" to play again", 150, 250);
+    }    
     
     paused(){
         this.startSound.pause();
@@ -202,8 +252,8 @@ class Pong
 
     play(){
         if (this.ball.vel.x === 0 && this.ball.vel.x === 0)
-            this.ball.vel.x = 300 * (Math.random() > .5 ? 1 : -1);
-            this.ball.vel.y = 300 * (Math.random() * 2 - 1);
+            this.ball.vel.x = 400 * (Math.random() > .5 ? 1 : -1);
+            this.ball.vel.y = 400 * (Math.random() * 2 - 1);
             this.ball.vel.len = 300;
     }
     
@@ -215,13 +265,7 @@ class Pong
     
     update(dt){
         //checks if the scores of either player is 10
-        if (this.players[0].score === 4 || this.players[1].score === 4){
-            this.startSound.pause();
-        }
-        if (this.players[0].score === 10 || this.players[1].score === 10){    
-            this.winSound.play();
-            this.reset ();
-        }
+          
 
         //updates the position of the ball    
         this.ball.pos.x += this.ball.vel.x * dt;
@@ -258,6 +302,7 @@ canvas.addEventListener("click", event =>{
 });
 
 document.addEventListener('keydown', event =>{
+    console.log(event);
     if (event.code === "KeyD" && pong.players[0].right < canvas.width){
         pong.players[0].pos.x += pong.players[0].vel.x ;
     } 
@@ -276,10 +321,16 @@ document.addEventListener('keydown', event =>{
 
     if (event.code === "Escape"){
        pong.reset(); 
+    }
+    if (event.code === "Tab"){
+       pong.instrust(); 
     }    
+    if (event.code === "Enter"){
+       pong.start(); 
+    }
 });  
 document.addEventListener('keyup', event =>{
     delete event.code;
 });
 
-pong.start();
+pong.instrust();
